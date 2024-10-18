@@ -1,0 +1,132 @@
+---
+# yamllint disable rule:line-length
+name: "Chapter 7 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "continuous_deployment_and_repository_secrets/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+env:
+  CHP_CODE_PATH: continuous_deployment_and_repository_secrets
+  AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+  AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+  AWS_REGION: "${{ secrets.AWS_REGION }}"
+
+jobs:
+  action_validator:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-action-validator
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Npm install
+        run: npm install
+
+      - name: TEST CH 7 ACTIONS/WORKFLOWS
+        working-directory: ${{ env.CHP_CODE_PATH }}
+        run: |-
+          npx action-validator 01_postgres_secret/.github/workflows/ci_cd.yaml
+
+          npx action-validator 02_web_secrets_01/.github/workflows/ci_cd.yaml
+          npx action-validator 02_web_secrets_02/.github/workflows/ci_cd.yaml
+
+          npx action-validator 03_sops/.github/workflows/ci_cd.yaml
+
+          npx action-validator 04_secrets_decrypt_script/.github/workflows/ci_cd.yaml
+
+          npx action-validator 05_convenience_script/.github/workflows/ci_cd.yaml
+
+          npx action-validator 06_github_secrets/.github/workflows/ci_cd.yaml
+
+          npx action-validator 07_deploy_action/.github/workflows/ci_cd.yaml
+          npx action-validator 07_deploy_action/.github/actions/deploy/action.yaml
+
+          npx action-validator 08_contributing_workflow/.github/workflows/ci_cd.yaml
+          npx action-validator 08_contributing_workflow/.github/actions/deploy/action.yaml
+
+          npx action-validator 09_extra_mile/.github/workflows/ci_cd.yaml
+          npx action-validator 09_extra_mile/.github/actions/deploy/action.yaml
+          npx action-validator 09_extra_mile/.github/actions/package/action.yaml
+
+  terraform:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-terraform
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: 01_postgres_secret
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/01_postgres_secret/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 02_web_secrets_01
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/02_web_secrets_01/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 02_web_secrets_02
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/02_web_secrets_02/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 03_sops
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/03_sops/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 04_secrets_decrypt_script
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/04_secrets_decrypt_script/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 05_convenience_script
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/05_convenience_script/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 06_github_secrets
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/06_github_secrets/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 07_deploy_action
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/07_deploy_action/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 08_contributing_workflow
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/08_contributing_workflow/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 09_extra_mile
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/09_extra_mile/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}

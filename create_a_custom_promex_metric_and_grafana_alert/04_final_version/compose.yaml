@@ -1,0 +1,158 @@
+# in compose.yaml
+
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15.2
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgrespassword
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT:-5432}
+    secrets:
+      - postgrespassword
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/beamops/kanban:latest}
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 30s
+        max_attempts: ${MAX_ATTEMPTS:-0}
+      update_config:
+        parallelism: 1
+        order: start-first
+        delay: 5s
+        failure_action: rollback
+      rollback_config:
+        parallelism: 0
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000']
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DATABASE_URL_FILE: /run/secrets/databaseurl
+      USE_AWS_FIXTURE_ADAPTER: ${USE_AWS_FIXTURE_ADAPTER:-false}
+      SECRET_KEY_BASE_FILE: /run/secrets/secretkeybase
+      PHX_HOST: "localhost"
+    ports:
+      - 4000:4000
+    command: >
+      bash -c "bin/migrate && \
+               bin/server"
+    depends_on:
+      - db
+    secrets:
+      - databaseurl
+      - secretkeybase
+
+  loki:
+    image: grafana/loki:2.9.3
+    configs:
+      - source: loki
+        target: /etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.9.3
+    deploy:
+      mode: global
+    configs:
+      - source: promtail
+        target: /etc/promtail/config.yml
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+  grafana:
+    image: grafana/grafana:9.5.15
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_BASIC_ENABLED=false
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=smtp.gmail.com:587
+      - GF_SMTP_USER=YOUR_EMAIL_ADDRESS
+      - GF_SMTP_PASSWORD=YOUR_GMAIL_APP_PASSWORD
+      - GF_SMTP_FROM_NAME=Grafana 
+      - GF_SMTP_FROM_ADDRESS=YOUR_EMAIL_ADDRESS
+    ports:
+      - "3000:3000"
+    configs:
+      - source: grafana_datasources
+        target: /etc/grafana/provisioning/datasources/datasource.yaml
+      - source: grafana_alert_rules
+        target: /etc/grafana/provisioning/alerting/alert_rules.yaml
+      - source: grafana_alert_resources
+        target: /etc/grafana/provisioning/alerting/alert_resources.yaml
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+  alloy:
+    image: grafana/alloy:v1.1.1
+    configs:
+      - source: alloy
+        target: /etc/alloy/config.alloy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  prometheus:
+    image: prom/prometheus:v2.45.2
+    ports:
+      - "9090:9090"
+    configs:
+      - source: prometheus
+        target: /etc/prometheus/prometheus.yml
+    command:
+      - --web.enable-remote-write-receiver
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - prometheus-data:/prometheus
+
+volumes:
+  db_data:
+  grafana-storage:
+  prometheus-data:
+
+
+configs:
+  alloy:
+    file: ./instrumentation/alloy/${ALLOY_CONFIG-swarm}.alloy
+  prometheus:
+    file: ./instrumentation/prometheus/local.yaml
+  loki:
+    file: ./instrumentation/loki/local.yaml
+  grafana_datasources:
+    file: ./instrumentation/grafana/datasources/datasources.yaml
+  grafana_alert_resources:
+    file: ./instrumentation/grafana/alerting/alert_resources.yaml
+  grafana_alert_rules:
+    file: ./instrumentation/grafana/alerting/alert_rules.yaml
+  promtail:
+    file: ./instrumentation/promtail/${PROMTAIL_CONFIG-swarm}.yaml
+
+secrets:
+  postgrespassword:
+    file: ./secrets/.postgrespassword
+  secretkeybase:
+    file: ./secrets/.secretkeybase
+  databaseurl:
+    file: ./secrets/.databaseurl

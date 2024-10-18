@@ -1,0 +1,10 @@
+github-cli 2.42.1
+terraform 1.7.1
+awscli 2.15.15
+elixir 1.16.0-otp-26
+erlang 26.2.1
+postgres 15.2
+packer 1.9.0
+age 1.1.1
+jq 1.7
+sops 3.8.1

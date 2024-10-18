@@ -1,0 +1,58 @@
+---
+# yamllint disable rule:line-length
+name: "Chapter 1 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "introduction_to_the_journey/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+env:
+  CHP_CODE_PATH: introduction_to_the_journey
+
+jobs:
+  linux-ubuntu-asdf:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+
+      - name: TEST CH 1 COMMANDS LINUX
+        working-directory: ${{ env.CHP_CODE_PATH }}
+        run: ./build_commands.sh
+
+  macos-asdf:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.1
+
+        # TODO
+      # - name: Update Homebrew
+        # run: |
+        #   brew update --preinstall
+        #   cat "$(brew --repository)/Library/Taps/homebrew/homebrew-core/Formula/foo.rb" > .github/brew-formulae
+
+      # - name: Configure Homebrew cache
+        # uses: actions/cache@v2
+        # with:
+        #   path: |
+        #     ~/Library/Caches/Homebrew/*
+        #     ~/Library/Caches/Homebrew/downloads/*
+        #   key: brew-${{ hashFiles('.github/brew-formulae') }}
+        #   restore-keys: brew-
+
+      - name: TEST CH 1 COMMANDS MACOS
+        working-directory: ${{ env.CHP_CODE_PATH }}
+        run: |
+          export NONINTERACTIVE=1
+          export HOMEBREW_NO_AUTO_UPDATE=1
+          ./build_commands_macos.sh

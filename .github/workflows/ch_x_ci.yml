@@ -1,0 +1,22 @@
+---
+# yamllint disable rule:line-length
+name: "Chapter x Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+jobs:
+  terraform:
+    name: "Ch CI"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step placeholder to ensure at least one Ch CI job passes
+        run: echo "Step placeholder to ensure at least one Ch CI job passes"

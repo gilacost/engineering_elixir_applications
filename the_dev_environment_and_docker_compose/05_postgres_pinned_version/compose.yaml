@@ -1,0 +1,19 @@
+# in compose.yaml
+
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15.2
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      restart_policy:
+        condition: on-failure
+    environment:
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - ${POSTGRES_PORT:-5432}

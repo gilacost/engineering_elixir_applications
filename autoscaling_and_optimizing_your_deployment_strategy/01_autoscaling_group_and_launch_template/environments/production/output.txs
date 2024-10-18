@@ -1,0 +1,421 @@
+[0m[1mmodule.swarm.data.aws_vpc.main: Reading...[0m[0m
+[0m[1mmodule.swarm.data.aws_ami.amazon_linux_docker: Reading...[0m[0m
+[0m[1mmodule.swarm.data.aws_ami.amazon_linux_docker: Read complete after 0s [id=ami-00700ab363dcde9a0][0m
+[0m[1mmodule.swarm.data.aws_vpc.main: Read complete after 0s [id=vpc-073bd07e][0m
+[0m[1mmodule.swarm.data.aws_subnets.main_subnets: Reading...[0m[0m
+[0m[1mmodule.swarm.data.aws_subnets.main_subnets: Read complete after 1s [id=eu-west-1][0m
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform will perform the following actions:
+
+[1m  # module.contributing_workflow.github_branch_protection.main[0m will be created
+[0m  [32m+[0m[0m resource "github_branch_protection" "main" {
+      [32m+[0m[0m allows_deletions                = false
+      [32m+[0m[0m allows_force_pushes             = false
+      [32m+[0m[0m blocks_creations                = false
+      [32m+[0m[0m enforce_admins                  = true
+      [32m+[0m[0m id                              = (known after apply)
+      [32m+[0m[0m lock_branch                     = false
+      [32m+[0m[0m pattern                         = "main"
+      [32m+[0m[0m repository_id                   = "kanban"
+      [32m+[0m[0m require_conversation_resolution = false
+      [32m+[0m[0m require_signed_commits          = false
+      [32m+[0m[0m required_linear_history         = false
+
+      [32m+[0m[0m required_pull_request_reviews {
+          [32m+[0m[0m require_code_owner_reviews      = false
+          [32m+[0m[0m require_last_push_approval      = false
+          [32m+[0m[0m required_approving_review_count = 1
+        }
+
+      [32m+[0m[0m required_status_checks {
+          [32m+[0m[0m contexts = [
+              [32m+[0m[0m "Compile with mix test, format, dialyzer & unused deps check",
+            ]
+          [32m+[0m[0m strict   = true
+        }
+    }
+
+[1m  # module.repository_secrets.github_actions_secret.main["AGE_KEY"][0m will be created
+[0m  [32m+[0m[0m resource "github_actions_secret" "main" {
+      [32m+[0m[0m created_at      = (known after apply)
+      [32m+[0m[0m id              = (known after apply)
+      [32m+[0m[0m plaintext_value = (sensitive value)
+      [32m+[0m[0m repository      = "kanban"
+      [32m+[0m[0m secret_name     = "AGE_KEY"
+      [32m+[0m[0m updated_at      = (known after apply)
+    }
+
+[1m  # module.repository_secrets.github_actions_secret.main["AWS_ACCESS_KEY_ID"][0m will be created
+[0m  [32m+[0m[0m resource "github_actions_secret" "main" {
+      [32m+[0m[0m created_at      = (known after apply)
+      [32m+[0m[0m id              = (known after apply)
+      [32m+[0m[0m plaintext_value = (sensitive value)
+      [32m+[0m[0m repository      = "kanban"
+      [32m+[0m[0m secret_name     = "AWS_ACCESS_KEY_ID"
+      [32m+[0m[0m updated_at      = (known after apply)
+    }
+
+[1m  # module.repository_secrets.github_actions_secret.main["AWS_SECRET_ACCESS_KEY"][0m will be created
+[0m  [32m+[0m[0m resource "github_actions_secret" "main" {
+      [32m+[0m[0m created_at      = (known after apply)
+      [32m+[0m[0m id              = (known after apply)
+      [32m+[0m[0m plaintext_value = (sensitive value)
+      [32m+[0m[0m repository      = "kanban"
+      [32m+[0m[0m secret_name     = "AWS_SECRET_ACCESS_KEY"
+      [32m+[0m[0m updated_at      = (known after apply)
+    }
+
+[1m  # module.repository_secrets.github_actions_secret.main["GH_PAT"][0m will be created
+[0m  [32m+[0m[0m resource "github_actions_secret" "main" {
+      [32m+[0m[0m created_at      = (known after apply)
+      [32m+[0m[0m id              = (known after apply)
+      [32m+[0m[0m plaintext_value = (sensitive value)
+      [32m+[0m[0m repository      = "kanban"
+      [32m+[0m[0m secret_name     = "GH_PAT"
+      [32m+[0m[0m updated_at      = (known after apply)
+    }
+
+[1m  # module.repository_secrets.github_actions_secret.main["PRIVATE_KEY"][0m will be created
+[0m  [32m+[0m[0m resource "github_actions_secret" "main" {
+      [32m+[0m[0m created_at      = (known after apply)
+      [32m+[0m[0m id              = (known after apply)
+      [32m+[0m[0m plaintext_value = (sensitive value)
+      [32m+[0m[0m repository      = "kanban"
+      [32m+[0m[0m secret_name     = "PRIVATE_KEY"
+      [32m+[0m[0m updated_at      = (known after apply)
+    }
+
+[1m  # module.swarm.aws_autoscaling_group.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_autoscaling_group" "main" {
+      [32m+[0m[0m arn                              = (known after apply)
+      [32m+[0m[0m availability_zones               = (known after apply)
+      [32m+[0m[0m default_cooldown                 = (known after apply)
+      [32m+[0m[0m desired_capacity                 = (known after apply)
+      [32m+[0m[0m force_delete                     = false
+      [32m+[0m[0m force_delete_warm_pool           = false
+      [32m+[0m[0m health_check_grace_period        = 300
+      [32m+[0m[0m health_check_type                = "EC2"
+      [32m+[0m[0m id                               = (known after apply)
+      [32m+[0m[0m ignore_failed_scaling_activities = false
+      [32m+[0m[0m load_balancers                   = (known after apply)
+      [32m+[0m[0m max_size                         = 7
+      [32m+[0m[0m metrics_granularity              = "1Minute"
+      [32m+[0m[0m min_size                         = 3
+      [32m+[0m[0m name                             = "swarm-asg"
+      [32m+[0m[0m name_prefix                      = (known after apply)
+      [32m+[0m[0m predicted_capacity               = (known after apply)
+      [32m+[0m[0m protect_from_scale_in            = false
+      [32m+[0m[0m service_linked_role_arn          = (known after apply)
+      [32m+[0m[0m target_group_arns                = (known after apply)
+      [32m+[0m[0m termination_policies             = [
+          [32m+[0m[0m "NewestInstance",
+        ]
+      [32m+[0m[0m vpc_zone_identifier              = [
+          [32m+[0m[0m "subnet-23280c45",
+          [32m+[0m[0m "subnet-699da921",
+          [32m+[0m[0m "subnet-a02445fa",
+        ]
+      [32m+[0m[0m wait_for_capacity_timeout        = "10m"
+      [32m+[0m[0m warm_pool_size                   = (known after apply)
+
+      [32m+[0m[0m launch_template {
+          [32m+[0m[0m id      = (known after apply)
+          [32m+[0m[0m name    = (known after apply)
+          [32m+[0m[0m version = "$Latest"
+        }
+
+      [32m+[0m[0m tag {
+          [32m+[0m[0m key                 = "Name"
+          [32m+[0m[0m propagate_at_launch = true
+          [32m+[0m[0m value               = "docker-swarm-manager"
+        }
+    }
+
+[1m  # module.swarm.aws_iam_instance_profile.main_profile[0m will be created
+[0m  [32m+[0m[0m resource "aws_iam_instance_profile" "main_profile" {
+      [32m+[0m[0m arn         = (known after apply)
+      [32m+[0m[0m create_date = (known after apply)
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m name        = "DockerSwarmSSMInstanceProfile"
+      [32m+[0m[0m name_prefix = (known after apply)
+      [32m+[0m[0m path        = "/"
+      [32m+[0m[0m role        = "DockerSwarmSSMRole"
+      [32m+[0m[0m tags_all    = (known after apply)
+      [32m+[0m[0m unique_id   = (known after apply)
+    }
+
+[1m  # module.swarm.aws_iam_policy.ssm_policy[0m will be created
+[0m  [32m+[0m[0m resource "aws_iam_policy" "ssm_policy" {
+      [32m+[0m[0m arn         = (known after apply)
+      [32m+[0m[0m description = "Policy to PUT and GET parameters from SSM for Docker Swarm"
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m name        = "DockerSwarmSSMPolicy"
+      [32m+[0m[0m name_prefix = (known after apply)
+      [32m+[0m[0m path        = "/"
+      [32m+[0m[0m policy      = jsonencode(
+            {
+              [32m+[0m[0m Statement = [
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = "ssm:PutParameter"
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = "arn:aws:ssm:eu-west-1:YOUR_AWS_ACCOUNT_ID:parameter/docker/*"
+                      [32m+[0m[0m Sid      = "SSMPutParameter"
+                    },
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = "ssm:GetParameter"
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = "arn:aws:ssm:eu-west-1:YOUR_AWS_ACCOUNT_ID:parameter/docker/*"
+                      [32m+[0m[0m Sid      = "SSMGetParameter"
+                    },
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = "ec2:DescribeInstances"
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = "*"
+                      [32m+[0m[0m Sid      = "EC2DescribeInstances"
+                    },
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action   = "ec2:CreateTags"
+                      [32m+[0m[0m Effect   = "Allow"
+                      [32m+[0m[0m Resource = "*"
+                      [32m+[0m[0m Sid      = "EC2CreateTags"
+                    },
+                ]
+              [32m+[0m[0m Version   = "2012-10-17"
+            }
+        )
+      [32m+[0m[0m policy_id   = (known after apply)
+      [32m+[0m[0m tags_all    = (known after apply)
+    }
+
+[1m  # module.swarm.aws_iam_role.ssm_role[0m will be created
+[0m  [32m+[0m[0m resource "aws_iam_role" "ssm_role" {
+      [32m+[0m[0m arn                   = (known after apply)
+      [32m+[0m[0m assume_role_policy    = jsonencode(
+            {
+              [32m+[0m[0m Statement = [
+                  [32m+[0m[0m {
+                      [32m+[0m[0m Action    = "sts:AssumeRole"
+                      [32m+[0m[0m Effect    = "Allow"
+                      [32m+[0m[0m Principal = {
+                          [32m+[0m[0m Service = "ec2.amazonaws.com"
+                        }
+                    },
+                ]
+              [32m+[0m[0m Version   = "2012-10-17"
+            }
+        )
+      [32m+[0m[0m create_date           = (known after apply)
+      [32m+[0m[0m force_detach_policies = false
+      [32m+[0m[0m id                    = (known after apply)
+      [32m+[0m[0m managed_policy_arns   = (known after apply)
+      [32m+[0m[0m max_session_duration  = 3600
+      [32m+[0m[0m name                  = "DockerSwarmSSMRole"
+      [32m+[0m[0m name_prefix           = (known after apply)
+      [32m+[0m[0m path                  = "/"
+      [32m+[0m[0m tags_all              = (known after apply)
+      [32m+[0m[0m unique_id             = (known after apply)
+    }
+
+[1m  # module.swarm.aws_iam_role_policy_attachment.ssm_role_policy_attachment[0m will be created
+[0m  [32m+[0m[0m resource "aws_iam_role_policy_attachment" "ssm_role_policy_attachment" {
+      [32m+[0m[0m id         = (known after apply)
+      [32m+[0m[0m policy_arn = (known after apply)
+      [32m+[0m[0m role       = "DockerSwarmSSMRole"
+    }
+
+[1m  # module.swarm.aws_key_pair.deployer_key[0m will be created
+[0m  [32m+[0m[0m resource "aws_key_pair" "deployer_key" {
+      [32m+[0m[0m arn             = (known after apply)
+      [32m+[0m[0m fingerprint     = (known after apply)
+      [32m+[0m[0m id              = (known after apply)
+      [32m+[0m[0m key_name        = "swarm-key"
+      [32m+[0m[0m key_name_prefix = (known after apply)
+      [32m+[0m[0m key_pair_id     = (known after apply)
+      [32m+[0m[0m key_type        = (known after apply)
+      [32m+[0m[0m public_key      = (known after apply)
+      [32m+[0m[0m tags_all        = (known after apply)
+    }
+
+[1m  # module.swarm.aws_launch_template.swarm_node[0m will be created
+[0m  [32m+[0m[0m resource "aws_launch_template" "swarm_node" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m default_version        = (known after apply)
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m image_id               = "ami-00700ab363dcde9a0"
+      [32m+[0m[0m instance_type          = "t2.micro"
+      [32m+[0m[0m key_name               = "swarm-key"
+      [32m+[0m[0m latest_version         = (known after apply)
+      [32m+[0m[0m name                   = (known after apply)
+      [32m+[0m[0m name_prefix            = "swarm-node-"
+      [32m+[0m[0m tags_all               = (known after apply)
+      [32m+[0m[0m user_data              = "IyEvdXNyL2Jpbi9lbnYgYmFzaAoKIyBpbiBtb2R1bGVzL2Nsb3VkL2F3cy9jb21wdXRlL3N3YXJtL3NjcmlwdHMvaW5pdGlhbGl6ZS5zaAoKZ2V0X2F3c19hcGlfdG9rZW4oKSB7CiAgY3VybCAtWCBQVVQgImh0dHA6Ly8xNjkuMjU0LjE2OS4yNTQvbGF0ZXN0L2FwaS90b2tlbiIgXAogICAgICAgLUggIlgtYXdzLWVjMi1tZXRhZGF0YS10b2tlbi10dGwtc2Vjb25kczogMzYwMCIKfQoKZ2V0X2luc3RhbmNlX21ldGFfZGF0YSgpIHsKICBsb2NhbCBBUElfVE9LRU49JDEKICBsb2NhbCBNRVRBX0RBVEFfQVRUUklCVVRFX05BTUU9JDIKICBjdXJsIC1IICJYLWF3cy1lYzItbWV0YWRhdGEtdG9rZW46ICRBUElfVE9LRU4iIFwKICAgICAgICAiaHR0cDovLzE2OS4yNTQuMTY5LjI1NC9sYXRlc3QvbWV0YS1kYXRhLyRNRVRBX0RBVEFfQVRUUklCVVRFX05BTUUiCn0KCiMgY3JlYXRlIHN3YXJtCmRvY2tlciBzd2FybSBpbml0CgojIHNhdmUgc3dhcm0gdG9rZW4gdG8gcGFyYW1ldGVyIHN0b3JlCk1BTkFHRVJfVE9LRU49JChkb2NrZXIgc3dhcm0gam9pbi10b2tlbiBtYW5hZ2VyIC1xKQphd3Mgc3NtIHB1dC1wYXJhbWV0ZXIgLS1uYW1lICIvZG9ja2VyL3N3YXJtX21hbmFnZXJfdG9rZW4iIFwKICAgICAgICAgICAgICAgICAgICAgIC0tdmFsdWUgIiRNQU5BR0VSX1RPS0VOIiBcCiAgICAgICAgICAgICAgICAgICAgICAtLXR5cGUgIlNlY3VyZVN0cmluZyIgLS1vdmVyd3JpdGUKCiMgZW5zdXJlIHBvcnQgMjIgaXMgb3BlbgpBV1NfQVBJX1RPS0VOPSQoZ2V0X2F3c19hcGlfdG9rZW4pCkNVUlJFTlRfSU5TVEFOQ0VfSVA9JChnZXRfaW5zdGFuY2VfbWV0YV9kYXRhICIkQVdTX0FQSV9UT0tFTiIgInB1YmxpYy1pcHY0IikKCndoaWxlICEgbmMgLXogLXYgLXcxICIkQ1VSUkVOVF9JTlNUQU5DRV9JUCIgMjI7IGRvIAogIGVjaG8gIldhaXRpbmcgZm9yIFNTSCB0byBiZSBhdmFpbGFibGUuLi4iCiAgc2xlZXAgMgpkb25lCgojIGFkZCAiU3dhcm1SZWFkeSIgdGFnCkNVUlJFTlRfSU5TVEFOQ0VfSUQ9JChnZXRfaW5zdGFuY2VfbWV0YV9kYXRhICIkQVdTX0FQSV9UT0tFTiIgImluc3RhbmNlLWlkIikKCmF3cyBlYzIgY3JlYXRlLXRhZ3MgXAogICAgLS1yZXNvdXJjZXMgIiRDVVJSRU5UX0lOU1RBTkNFX0lEIiBcCiAgICAtLXRhZ3MgIktleT1Td2FybVJlYWR5LFZhbHVlPXRydWUiIFwKICAgIC0tcmVnaW9uICJldS13ZXN0LTEiCg=="
+      [32m+[0m[0m vpc_security_group_ids = (known after apply)
+
+      [32m+[0m[0m iam_instance_profile {
+          [32m+[0m[0m name = "DockerSwarmSSMInstanceProfile"
+        }
+    }
+
+[1m  # module.swarm.aws_security_group.swarm_sg[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "swarm_sg" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Managed by Terraform"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = ""
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "Elixir Phoenix app"
+              [32m+[0m[0m from_port        = 4000
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 4000
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "SSH port"
+              [32m+[0m[0m from_port        = 22
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 22
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "172.31.0.0/16",
+                ]
+              [32m+[0m[0m description      = "Docker container network discovery"
+              [32m+[0m[0m from_port        = 7946
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 7946
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "172.31.0.0/16",
+                ]
+              [32m+[0m[0m description      = "Docker overlay network"
+              [32m+[0m[0m from_port        = 4789
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "udp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 4789
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "172.31.0.0/16",
+                ]
+              [32m+[0m[0m description      = "Docker swarm management"
+              [32m+[0m[0m from_port        = 2377
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 2377
+            },
+        ]
+      [32m+[0m[0m name                   = "swarm_pool_ports"
+      [32m+[0m[0m name_prefix            = (known after apply)
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags_all               = (known after apply)
+      [32m+[0m[0m vpc_id                 = "vpc-073bd07e"
+    }
+
+[1m  # module.swarm.aws_ssm_parameter.swarm_token[0m will be created
+[0m  [32m+[0m[0m resource "aws_ssm_parameter" "swarm_token" {
+      [32m+[0m[0m arn            = (known after apply)
+      [32m+[0m[0m data_type      = (known after apply)
+      [32m+[0m[0m description    = "The swarm manager join token"
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m insecure_value = (known after apply)
+      [32m+[0m[0m key_id         = (known after apply)
+      [32m+[0m[0m name           = "/docker/swarm_manager_token"
+      [32m+[0m[0m tags_all       = (known after apply)
+      [32m+[0m[0m tier           = (known after apply)
+      [32m+[0m[0m type           = "SecureString"
+      [32m+[0m[0m value          = (sensitive value)
+      [32m+[0m[0m version        = (known after apply)
+    }
+
+[1m  # module.swarm.local_sensitive_file.private_key[0m will be created
+[0m  [32m+[0m[0m resource "local_sensitive_file" "private_key" {
+      [32m+[0m[0m content              = (sensitive value)
+      [32m+[0m[0m content_base64sha256 = (known after apply)
+      [32m+[0m[0m content_base64sha512 = (known after apply)
+      [32m+[0m[0m content_md5          = (known after apply)
+      [32m+[0m[0m content_sha1         = (known after apply)
+      [32m+[0m[0m content_sha256       = (known after apply)
+      [32m+[0m[0m content_sha512       = (known after apply)
+      [32m+[0m[0m directory_permission = "0700"
+      [32m+[0m[0m file_permission      = "0400"
+      [32m+[0m[0m filename             = "./private_key.pem"
+      [32m+[0m[0m id                   = (known after apply)
+    }
+
+[1m  # module.swarm.tls_private_key.rsa[0m will be created
+[0m  [32m+[0m[0m resource "tls_private_key" "rsa" {
+      [32m+[0m[0m algorithm                     = "RSA"
+      [32m+[0m[0m ecdsa_curve                   = "P224"
+      [32m+[0m[0m id                            = (known after apply)
+      [32m+[0m[0m private_key_openssh           = (sensitive value)
+      [32m+[0m[0m private_key_pem               = (sensitive value)
+      [32m+[0m[0m private_key_pem_pkcs8         = (sensitive value)
+      [32m+[0m[0m public_key_fingerprint_md5    = (known after apply)
+      [32m+[0m[0m public_key_fingerprint_sha256 = (known after apply)
+      [32m+[0m[0m public_key_openssh            = (known after apply)
+      [32m+[0m[0m public_key_pem                = (known after apply)
+      [32m+[0m[0m rsa_bits                      = 4096
+    }
+
+[1mPlan:[0m 17 to add, 0 to change, 0 to destroy.
+[0m
+Changes to Outputs:
+  [32m+[0m[0m swarm_ssh_command = <<-EOT
+        aws ec2 describe-instances \
+          --query "Reservations[*].Instances[*].{IP:PublicIpAddress}" \
+          --filters \
+          "Name=tag:aws:autoscaling:groupName,Values=swarm-asg" \
+          "Name=instance-state-name,Values=running" \
+          --region eu-west-1 \
+          --output text | \
+          awk '{print "ssh -i ./private_key.pem ec2-user@"$1}'
+    EOT
+[90m
+─────────────────────────────────────────────────────────────────────────────[0m
+
+Note: You didn't use the -out option to save this plan, so Terraform can't
+guarantee to take exactly these actions if you run "terraform apply" now.

@@ -1,0 +1,58 @@
+# in .github/actions/deploy/action.yaml
+
+name: "Continuous Deployment to Remote Docker Swarm"
+description: "Deploys into a Docker Swarm when given a certain image tag"
+inputs:
+  image_tag:
+    description: "Image tag to update the web service in the swarm"
+    required: true
+  github_user:
+    description: "Owner of the package used by the registry login step"
+    required: true
+  gh_pat:
+    description: "GitHub token used to log in the registry"
+    required: true
+  aws_access_key_id:
+    description: "An AWS access key ID"
+    required: true
+  aws_secret_access_key:
+    description: "The AWS secret key"
+    required: true
+  age_key:
+    description: "The age key used by SOPS"
+    required: true
+  ssh_private_key:
+    description: "The SSH key used to run docker commands on the remote host"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup SOPS
+      uses: nhedger/setup-sops@v2
+      with:
+        version: 3.7.3
+    
+    - uses: alessiodionisi/setup-age-action@v1.3.0
+      with:
+        version: ^1.1.0
+
+    - name: Create age and SSH key files
+      shell: bash
+      run: |-
+        echo "${{ inputs.age_key }}" > ./key.txt
+        echo "${{ inputs.ssh_private_key }}" > ./private_key.pem
+
+    - name: Deploy
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.gh_pat }}
+        GITHUB_USER: ${{ inputs.github_user }}
+        AWS_ACCESS_KEY_ID: ${{ inputs.aws_access_key_id }}
+        AWS_SECRET_ACCESS_KEY: ${{ inputs.aws_secret_access_key }}
+      run: |-
+        SOPS_AGE_KEY_FILE=$(pwd)/key.txt \
+        PRIVATE_KEY_PATH="$(pwd)/private_key.pem" \
+        ./scripts/deploy.sh ${{ inputs.image_tag }}

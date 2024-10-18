@@ -1,0 +1,11 @@
+# in instrumentation/prometheus/local.yaml
+
+# global configurations
+global:
+  scrape_interval: 5s
+
+# targets to scrape
+scrape_configs:
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]

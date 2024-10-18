@@ -1,0 +1,59 @@
+---
+# yamllint disable rule:line-length
+name: "Chapter 9 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "code/distributed_erlang/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+env:
+  CHP_CODE_PATH: distributed_erlang
+  AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+  AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+  AWS_REGION: "${{ secrets.AWS_REGION }}"
+
+jobs:
+  action_validator:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-action-validator
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Npm install
+        run: npm install
+
+      - name: TEST CH 9 ACTIONS/WORKFLOWS
+        working-directory: ${{ env.CHP_CODE_PATH }}
+        run: |-
+          npx action-validator 01_connect_multiple_releases/.github/workflows/ci_cd.yaml
+          npx action-validator 01_connect_multiple_releases/.github/actions/deploy/action.yaml
+
+
+  terraform:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-terraform
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: 01_connect_multiple_releases
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/01_connect_multiple_releases/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}

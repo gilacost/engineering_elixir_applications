@@ -1,0 +1,121 @@
+---
+# yamllint disable rule:line-length
+name: "Chapter 10 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "autoscaling_and_optimizing_your_deployment_strategy/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+env:
+  CHP_CODE_PATH: autoscaling_and_optimizing_your_deployment_strategy
+  AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+  AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+  AWS_REGION: "${{ secrets.AWS_REGION }}"
+
+jobs:
+  action_validator:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-action-validator
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Npm install
+        run: npm install
+
+      - name: TEST CH 10 ACTIONS/WORKFLOWS
+        working-directory: ${{ env.CHP_CODE_PATH }}
+        run: |-
+          npx action-validator 01_autoscaling_group_and_launch_template/.github/workflows/ci_cd.yaml
+          npx action-validator 01_autoscaling_group_and_launch_template/.github/actions/deploy/action.yaml
+
+          npx action-validator 02_one_script_to_rule_them_all_01/.github/workflows/ci_cd.yaml
+          npx action-validator 02_one_script_to_rule_them_all_01/.github/actions/deploy/action.yaml
+
+          npx action-validator 02_one_script_to_rule_them_all_02/.github/workflows/ci_cd.yaml
+          npx action-validator 02_one_script_to_rule_them_all_02/.github/actions/deploy/action.yaml
+
+          npx action-validator 03_implement_autoscaling/.github/workflows/ci_cd.yaml
+          npx action-validator 03_implement_autoscaling/.github/actions/deploy/action.yaml
+
+          npx action-validator 04_trigger_auto_scaling/.github/workflows/ci_cd.yaml
+          npx action-validator 04_trigger_auto_scaling/.github/actions/deploy/action.yaml
+
+          npx action-validator 05_load_balancer/.github/workflows/ci_cd.yaml
+          npx action-validator 05_load_balancer/.github/actions/deploy/action.yaml
+
+          npx action-validator 06_automatic_rollbacks/.github/workflows/ci_cd.yaml
+          npx action-validator 06_automatic_rollbacks/.github/actions/deploy/action.yaml
+
+          npx action-validator 07_housekeeping_tasks/.github/workflows/ci_cd.yaml
+          npx action-validator 07_housekeeping_tasks/.github/actions/deploy/action.yaml
+
+  terraform:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-terraform
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: 01_autoscaling_group_and_launch_template
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/01_autoscaling_group_and_launch_template/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 02_one_script_to_rule_them_all_01
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/02_one_script_to_rule_them_all_01/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 02_one_script_to_rule_them_all_02
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/02_one_script_to_rule_them_all_02/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 03_implement_autoscaling
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/03_implement_autoscaling/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 04_trigger_auto_scaling
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/04_trigger_auto_scaling/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 05_load_balancer
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/05_load_balancer/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 06_automatic_rollbacks
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/06_automatic_rollbacks/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
+
+      - name: 07_housekeeping_tasks
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/07_housekeeping_tasks/environments/production
+          aws_account_id: ${{ secrets.AWS_ACCOUNT_ID }}
