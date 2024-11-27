@@ -1,0 +1,44 @@
+#START: set_up_cache
+# in ci_cd.yaml
+
+#END: set_up_cache
+name: CI/CD Elixir
+
+on:
+  push:
+  workflow_dispatch:
+
+#START: set_up_cache
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    name: Compile
+    env:
+      MIX_ENV: test
+    steps:
+#END: set_up_cache
+      - uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1.17.3
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+#START: set_up_cache
+      - name: Cache deps directory
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+#END: set_up_cache
+
+      - name: Get dependencies
+        run: mix deps.get
+
+      - run: mix compile --warnings-as-errors

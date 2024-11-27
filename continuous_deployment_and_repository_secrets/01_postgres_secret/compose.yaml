@@ -1,0 +1,70 @@
+# START: db-secrets-sub-attribute
+# START: db-environment-pg-password-only
+# START: secrets-top-level-pg-password-only
+# in compose.yaml
+
+# END: secrets-top-level-pg-password-only
+# END: db-secrets-sub-attribute
+# END: db-environment-pg-password-only
+version: "3.9"
+
+# START: db-secrets-sub-attribute
+# START: db-environment-pg-password-only
+services:
+  db:
+    image: postgres:15.2
+    # END: db-secrets-sub-attribute
+    # END: db-environment-pg-password-only
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    # START: db-environment-pg-password-only
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgrespassword
+      # END: db-environment-pg-password-only
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT:-5432}
+    # START: db-secrets-sub-attribute
+    secrets:
+      - postgrespassword
+    # END: db-secrets-sub-attribute
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/beamops/kanban:latest}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db/postgres
+      SECRET_KEY_BASE: 9wORvLm5m1UOawC8RCj4ASIwXgcSzIYBiUqU8yzyFl11xfsFqy/X6D
+      PHX_HOST: "localhost"
+    ports:
+      - 4000:4000
+    command: >
+      bash -c "bin/migrate && \
+               bin/server"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
+
+# START: secrets-top-level-pg-password-only
+secrets:
+  postgrespassword:
+    file: ./secrets/.postgrespassword
+# END: secrets-top-level-pg-password-only

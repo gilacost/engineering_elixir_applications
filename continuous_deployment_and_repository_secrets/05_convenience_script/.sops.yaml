@@ -1,0 +1,7 @@
+# in .sops.yaml
+
+creation_rules:
+  - path_regex: secrets/.*$
+    key_groups:
+      - age:
+          - "age1rpt4347r8xkhlk68cl402drfdm5q29ajw8q76l6hlvsguf6u0u6sl2k3ld"

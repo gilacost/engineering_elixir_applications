@@ -1,0 +1,38 @@
+discovery.dockerswarm "kanban" {
+  host = "unix:///var/run/docker.sock"
+  role = "tasks"
+  refresh_interval = "15s"
+
+  filter {
+    name = "desired-state"
+    values = ["running", "accepted"]
+  }
+
+  filter {
+    name = "service"
+    values = ["kanban_web"]
+  }
+}
+
+discovery.relabel "use_swarm_node_not_internal_ip" {
+  targets = discovery.dockerswarm.kanban.targets
+
+  rule {
+    source_labels = ["__meta_dockerswarm_node_id"]
+    target_label = "instance"
+  }
+}
+
+prometheus.remote_write "kanban" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}
+
+prometheus.scrape "kanban" {
+  targets    = discovery.relabel.use_swarm_node_not_internal_ip.output
+  forward_to = [prometheus.remote_write.kanban.receiver]
+  scrape_interval = "5s"
+  scrape_timeout = "5s"
+}
+

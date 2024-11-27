@@ -1,0 +1,23 @@
+# in instrumentation/grafana/alerting/alert_resources.yaml
+
+apiVersion: 1
+
+policies:
+    - orgId: 1
+      receiver: My Contact Email Point
+      group_by:
+        - grafana_folder
+        - alertname
+      routes:
+        - receiver: My Contact Email Point
+
+contactPoints:
+    - orgId: 1
+      name: My Contact Email Point
+      receivers:
+        - uid: my_contact_email_point_uid
+          type: email
+          settings:
+            addresses: YOUR_EMAIL_ADDRESS
+            singleEmail: false
+          disableResolveMessage: false

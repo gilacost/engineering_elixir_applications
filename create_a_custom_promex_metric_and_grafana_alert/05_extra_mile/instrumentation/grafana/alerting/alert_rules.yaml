@@ -1,0 +1,96 @@
+apiVersion: 1
+groups:
+    - orgId: 1
+      name: main
+      folder: alerts
+      interval: 1m
+      rules:
+        - uid: ce861004-0d7e-4f84-9fc8-bccfac1b61c1
+          title: High CPU Usage
+          condition: C
+          data:
+            - refId: A
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: P1809F7CD0C75ACF3
+              model:
+                datasource:
+                    type: prometheus
+                    uid: P1809F7CD0C75ACF3
+                editorMode: code
+                exemplar: false
+                expr: avg (cpu_util)
+                format: table
+                hide: false
+                instant: true
+                interval: ""
+                intervalMs: 1000
+                legendFormat: ""
+                maxDataPoints: 43200
+                range: false
+                refId: A
+            - refId: B
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params: []
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - B
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: A
+                hide: false
+                intervalMs: 1000
+                maxDataPoints: 43200
+                reducer: last
+                refId: B
+                settings:
+                    mode: dropNN
+                type: reduce
+            - refId: C
+              relativeTimeRange:
+                from: 600
+                to: 0
+              datasourceUid: __expr__
+              model:
+                conditions:
+                    - evaluator:
+                        params:
+                            - 40
+                        type: gt
+                      operator:
+                        type: and
+                      query:
+                        params:
+                            - C
+                      reducer:
+                        params: []
+                        type: last
+                      type: query
+                datasource:
+                    type: __expr__
+                    uid: __expr__
+                expression: B
+                hide: false
+                intervalMs: 1000
+                maxDataPoints: 43200
+                refId: C
+                type: threshold
+          noDataState: NoData
+          execErrState: Error
+          for: 5m
+          isPaused: false

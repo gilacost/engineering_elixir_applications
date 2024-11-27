@@ -1,0 +1,72 @@
+# START: secret-key-base-and-database-url-secret-definitions
+# START: secrets-top-level-pg-password-only
+# in compose.yaml
+
+# END: secret-key-base-and-database-url-secret-definitions
+# END: secrets-top-level-pg-password-only
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15.2
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgrespassword
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT:-5432}
+    secrets:
+      - postgrespassword
+
+# START: secret-key-base-and-database-url-secret-definitions
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/beamops/kanban:latest}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      DATABASE_URL_FILE: /run/secrets/databaseurl
+      SECRET_KEY_BASE_FILE: /run/secrets/secretkeybase
+      PHX_HOST: "localhost"
+    ports:
+      - 4000:4000
+    command: >
+      bash -c "bin/migrate && \
+               bin/server"
+    depends_on:
+      - db
+    secrets:
+      - databaseurl
+      - secretkeybase
+# END: secret-key-base-and-database-url-secret-definitions
+
+volumes:
+  db_data:
+
+# START: secret-key-base-and-database-url-secret-definitions
+
+# START: secrets-top-level-pg-password-only
+secrets:
+  postgrespassword:
+    file: ./secrets/.postgrespassword
+# END: secrets-top-level-pg-password-only
+  secretkeybase:
+    file: ./secrets/.secretkeybase
+  databaseurl:
+    file: ./secrets/.databaseurl
+# END: secret-key-base-and-database-url-secret-definitions

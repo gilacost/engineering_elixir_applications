@@ -1,0 +1,114 @@
+name: CI/CD Elixir
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    name: Compile with mix test, format, dialyzer & unused deps check
+    env:
+      MIX_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1.17.3
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Cache deps directory
+        uses: actions/cache@v4
+        id: cache-deps
+        env:
+          ELIXIR_VERSION: ${{ steps.setup-beam.outputs.elixir-version }}
+          ERLANG_VERSION: ${{ steps.setup-beam.outputs.otp-version }}
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ env.ELIXIR_VERSION }}-${{ env.ERLANG_VERSION }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-${{ env.ELIXIR_VERSION }}-${{ env.ERLANG_VERSION }}-
+            ${{ runner.os }}-mix-${{ env.ELIXIR_VERSION }}-
+            ${{ runner.os }}-mix-
+
+      - name: Cache plt files
+        uses: actions/cache@v4
+        env: 
+          EX_OTP_VERSIONS: ${{ steps.setup-beam.outputs.elixir-version }}
+          KEY_BASE: plt-${{ runner.os }}-${{ env.EX_OTP_VERSIONS }}
+        with:
+          path: |
+            priv/plts
+          key: |
+            ${{ env.KEY_BASE }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ env.KEY_BASE }}-
+
+      - name: Get dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - name: CI (compile, format, test, unused_deps)
+        run: |-
+          mix ci
+          mix ci_dev
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: OWNER/REPO
+
+  build-push:
+    runs-on: ubuntu-latest
+    needs: ci
+    name: Build Docker image & push to ghcr.io
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_PAT }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ghcr.io/beamops/kanban
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=pr
+            type=sha,format=short
+
+      - name: Parse versions from .tool-versions
+        id: parse-asdf
+        run: ./scripts/versions.sh
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          cache-from: type=registry,ref=ghcr.io/beamops/kanban:cache
+          cache-to: type=registry,ref=ghcr.io/beamops/kanban:cache,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          build-args: |
+            ELIXIR_VERSION=${{ env.ELIXIR_VERSION }}
+            OTP_VERSION=${{ env.ERLANG_VERSION }}

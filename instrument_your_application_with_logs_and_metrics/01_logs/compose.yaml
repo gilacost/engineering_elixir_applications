@@ -1,0 +1,163 @@
+# START: loki_initial_setup
+# START: promtail_initial_setup
+# START: promtail_volume
+# START: promtail_global
+# START: grafana
+# START: loki
+# in compose.yaml
+
+# END: loki_initial_setup
+# END: loki
+# END: promtail_volume
+# END: promtail_global
+# END: grafana
+# END: promtail_initial_setup
+version: "3.9"
+
+# START: promtail_global
+# START: promtail_volume
+# START: loki
+# START: promtail_initial_setup
+# START: loki_initial_setup
+services:
+# END: loki_initial_setup
+# END: promtail_initial_setup
+# END: loki
+# END: promtail_volume
+# END: promtail_global
+  db:
+    image: postgres:15.2
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgrespassword
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT:-5432}
+    secrets:
+      - postgrespassword
+
+  web:
+    image: ${WEB_IMAGE:-ghcr.io/beamops/kanban:latest}
+    deploy:
+      mode: global
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        window: 30s
+        max_attempts: ${MAX_ATTEMPTS:-0}
+      update_config:
+        parallelism: 1
+        order: start-first
+        delay: 5s
+        failure_action: rollback
+      rollback_config:
+        parallelism: 0
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000']
+      interval: 5s
+      timeout: 3s
+      retries: 3
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DATABASE_URL_FILE: /run/secrets/databaseurl
+      SECRET_KEY_BASE_FILE: /run/secrets/secretkeybase
+      PHX_HOST: "localhost"
+    ports:
+      - 4000:4000
+    command: >
+      bash -c "bin/migrate && \
+               bin/server"
+    depends_on:
+      - db
+    secrets:
+      - databaseurl
+      - secretkeybase
+
+# START: loki
+# START: loki_initial_setup
+  loki:
+    image: grafana/loki:2.9.3
+    # END: loki_initial_setup
+    configs:
+      - source: loki
+        target: /etc/loki/local-config.yaml
+# END: loki
+
+# START: promtail_initial_setup
+# START: promtail_volume
+# START: promtail_global
+  promtail:
+    # END: promtail_volume
+    image: grafana/promtail:2.9.3
+    # END: promtail_initial_setup
+    deploy:
+      mode: global
+    # END: promtail_global
+    # START: promtail_initial_setup
+    configs:
+      - source: promtail
+        target: /etc/promtail/config.yml
+        # END: promtail_initial_setup
+    # START: promtail_volume
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+# END: promtail_volume
+
+# START: grafana
+  grafana:
+    image: grafana/grafana:9.5.15
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    ports:
+      - "3000:3000"
+    configs:
+      - source: grafana_datasources
+        target: /etc/grafana/provisioning/datasources/datasource.yml
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+volumes:
+  grafana-storage:
+  # END: grafana
+  db_data:
+# START: promtail_initial_setup
+# START: grafana
+
+# START: loki
+configs:
+# END: promtail_initial_setup
+# END: grafana
+  loki:
+    file: ./instrumentation/loki/local.yaml
+    # END: loki
+    # START: promtail_initial_setup
+  promtail:
+    file: ./instrumentation/promtail/${PROMTAIL_CONFIG-swarm}.yaml
+    # END: promtail_initial_setup
+    # START: grafana
+  grafana_datasources:
+    file: ./instrumentation/grafana/datasources/datasources.yaml
+    # END: grafana
+
+secrets:
+  postgrespassword:
+    file: ./secrets/.postgrespassword
+  secretkeybase:
+    file: ./secrets/.secretkeybase
+  databaseurl:
+    file: ./secrets/.databaseurl

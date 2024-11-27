@@ -1,0 +1,10 @@
+# you can start this with docker compose -f compose.yaml -f compose-adminer.yaml up -d
+version: '3.9'
+
+services:
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080

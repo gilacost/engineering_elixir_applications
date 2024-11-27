@@ -1,0 +1,88 @@
+# START: web_service_deployment_config
+# in compose.yaml
+
+# END: web_service_deployment_config
+version: "3.9"
+
+# START: web_service_deployment_config
+services:
+  # END: web_service_deployment_config
+  db:
+    image: postgres:15.2
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgrespassword
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT:-5432}
+    secrets:
+      - postgrespassword
+
+# START: web_service_deployment_config
+  web:
+  # END: web_service_deployment_config
+    image: ${WEB_IMAGE:-ghcr.io/beamops/kanban:latest}
+    # START: web_service_deployment_config
+    deploy:
+      # END: web_service_deployment_config
+      mode: global
+      # START: web_service_deployment_config
+      restart_policy:
+        # END: web_service_deployment_config
+        condition: on-failure
+        delay: 5s
+        window: 30s
+        # START: web_service_deployment_config
+        max_attempts: ${MAX_ATTEMPTS:-0}
+      update_config:
+        parallelism: 1
+        order: start-first
+        delay: 5s
+        failure_action: rollback
+      rollback_config:
+        parallelism: 0
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:4000']
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      # END: web_service_deployment_config
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      DATABASE_URL_FILE: /run/secrets/databaseurl
+      SECRET_KEY_BASE_FILE: /run/secrets/secretkeybase
+      PHX_HOST: "localhost"
+    ports:
+      - 4000:4000
+    command: >
+      bash -c "bin/migrate && \
+               bin/server"
+    depends_on:
+      - db
+    secrets:
+      - databaseurl
+      - secretkeybase
+
+volumes:
+  db_data:
+
+secrets:
+  postgrespassword:
+    file: ./secrets/.postgrespassword
+  secretkeybase:
+    file: ./secrets/.secretkeybase
+  databaseurl:
+    file: ./secrets/.databaseurl

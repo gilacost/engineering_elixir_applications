@@ -1,0 +1,67 @@
+name: "Build a Docker Image"
+description: "Automates building and pushing a Docker image to GitHub Container Registry"
+inputs:
+  gh_pat:
+    description: "GitHub token for authentication to push images to the registry"
+    required: true
+  platforms:
+    description: "Target platforms for building Docker images using QEMU emulation"
+    default: "linux/amd64"
+
+outputs:
+  image_tags:
+    description: "Generated tags for the Docker image"
+    value: ${{ steps.meta.outputs.tags }}
+
+runs:
+  using: "composite"
+  steps:
+    - uses: actions/checkout@v4
+
+    - name: Parse versions from .tool-versions
+      shell: bash
+      id: parse-asdf
+      run: |- 
+        ./scripts/versions.sh
+
+    - name: Set image base and owner
+      shell: bash
+      run: |-
+        echo "IMAGE_BASE=$(echo $GITHUB_REPOSITORY | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+        echo "GITHUB_OWNER=$(echo $GITHUB_REPOSITORY_OWNER )" >> $GITHUB_ENV
+
+    - name: Login to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ env.GITHUB_OWNER }}
+        password: ${{ inputs.gh_pat }}
+
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ghcr.io/${{ env.IMAGE_BASE }}
+        tags: |
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=sha,format=short
+          type=ref,event=pr
+
+    - uses: docker/setup-buildx-action@v3
+
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v3
+
+    - uses: docker/build-push-action@v5
+      with:
+        context: .
+        cache-from: type=registry,ref=ghcr.io/${{ env.IMAGE_BASE }}:cache
+        cache-to: type=registry,ref=ghcr.io/${{ env.IMAGE_BASE }}:cache,mode=max
+        tags: ${{ steps.meta.outputs.tags }}
+        platforms: ${{ inputs.platforms }}
+        labels: ${{ steps.meta.outputs.labels }}
+        push: true
+        build-args: |-
+          ELIXIR_VERSION=${{ env.ELIXIR_VERSION }}
+          OTP_VERSION=${{ env.ERLANG_VERSION }}
