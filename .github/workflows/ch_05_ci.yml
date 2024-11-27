@@ -1,0 +1,48 @@
+---
+name: "Chapter 5 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "code/the_dev_environment_and_docker_compose/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+env:
+  OTP_VERSION: 26.2.1
+  ELIXIR_VERSION: 1.16.0
+  CHP_CODE_PATH: the_dev_environment_and_docker_compose
+
+jobs:
+  docker-build-and-co:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}  # Ensures only one instance of this workflow runs at a time
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Elixir v${{ env.ELIXIR_VERSION }}-otp-${{ env.OTP_VERSION }}
+        uses: erlef/setup-beam@v1
+        with:
+          otp-version: ${{ env.OTP_VERSION }}
+          elixir-version: ${{ env.ELIXIR_VERSION }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_PAT }}
+
+      - name: TEST CH 5 COMMANDS
+        working-directory: ${{ env.CHP_CODE_PATH }}
+        run: ./build_commands.sh

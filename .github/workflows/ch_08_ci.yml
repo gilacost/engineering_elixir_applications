@@ -1,0 +1,109 @@
+---
+# yamllint disable rule:line-length
+name: "Chapter 8 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "revise_your_aws_stack_to_create_a_multinode_swarm/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+env:
+  CHP_CODE_PATH: revise_your_aws_stack_to_create_a_multinode_swarm
+  AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+  AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+  AWS_REGION: "${{ secrets.AWS_REGION }}"
+
+jobs:
+  action_validator:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-action-validator
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Npm install
+        run: npm install
+
+      - name: TEST CH 7 ACTIONS/WORKFLOWS
+        working-directory: ${{ env.CHP_CODE_PATH }}
+        run: |-
+          npx action-validator 01_multiple_ec2_instances/.github/workflows/ci_cd.yaml
+          npx action-validator 01_multiple_ec2_instances/.github/actions/deploy/action.yaml
+
+          npx action-validator 02_multinode_swarm/.github/workflows/ci_cd.yaml
+          npx action-validator 02_multinode_swarm/.github/actions/deploy/action.yaml
+
+          npx action-validator 03_initialize_script/.github/workflows/ci_cd.yaml
+          npx action-validator 03_initialize_script/.github/actions/deploy/action.yaml
+
+          npx action-validator 04_join_script_01/.github/workflows/ci_cd.yaml
+          npx action-validator 04_join_script_01/.github/actions/deploy/action.yaml
+
+          npx action-validator 04_join_script_02/.github/workflows/ci_cd.yaml
+          npx action-validator 04_join_script_02/.github/actions/deploy/action.yaml
+
+          npx action-validator 04_join_script_03/.github/workflows/ci_cd.yaml
+          npx action-validator 04_join_script_03/.github/actions/deploy/action.yaml
+
+          npx action-validator 05_initial_deployment_automation/.github/workflows/ci_cd.yaml
+          npx action-validator 05_initial_deployment_automation/.github/actions/deploy/action.yaml
+
+  terraform:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-terraform
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: 01_multiple_ec2_instances
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/01_multiple_ec2_instances/environments/production
+
+      - name: 02_multinode_swarm
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/02_multinode_swarm/environments/production
+
+      - name: 03_initialize_script
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/03_initialize_script/environments/production
+
+      - name: 04_join_script_01
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/04_join_script_01/environments/production
+
+      # we are trying to import a remote object (SSM parameter) into our state file
+      - name: 04_join_script_02
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/04_join_script_02/environments/production
+          continue_on_error: 'true'
+
+      # we are trying to import a remote object (SSM parameter) into our state file
+      - name: 04_join_script_03
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/04_join_script_03/environments/production
+          continue_on_error: 'true'
+
+      - name: 05_initial_deployment_automation
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/05_initial_deployment_automation/environments/production

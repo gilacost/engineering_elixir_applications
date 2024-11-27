@@ -1,0 +1,117 @@
+name: Elixir Compile with Caching
+
+on:
+  workflow_dispatch:
+
+jobs:
+  compile:
+    name: Compile Elixir Projects
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        path:
+          - autoscaling_and_optimizing_your_deployment_strategy/03_implement_autoscaling
+          - autoscaling_and_optimizing_your_deployment_strategy/02_one_script_to_rule_them_all_02
+          - autoscaling_and_optimizing_your_deployment_strategy/06_automatic_rollbacks
+          - autoscaling_and_optimizing_your_deployment_strategy/01_autoscaling_group_and_launch_template
+          - autoscaling_and_optimizing_your_deployment_strategy/05_load_balancer
+          - autoscaling_and_optimizing_your_deployment_strategy/04_trigger_auto_scaling
+          - autoscaling_and_optimizing_your_deployment_strategy/07_housekeeping_tasks
+          - autoscaling_and_optimizing_your_deployment_strategy/02_one_script_to_rule_them_all_01
+          - create_a_custom_promex_metric_and_grafana_alert/03_custom_alert
+          - create_a_custom_promex_metric_and_grafana_alert/01_cpu_promex_plugin
+          - create_a_custom_promex_metric_and_grafana_alert/02_custom_dashboard
+          - create_a_custom_promex_metric_and_grafana_alert/05_extra_mile
+          - create_a_custom_promex_metric_and_grafana_alert/04_final_version
+          - the_dev_environment_and_docker_compose/03_postgres_ports_published_hardcoded
+          - the_dev_environment_and_docker_compose/01_phx_with_ecto
+          - the_dev_environment_and_docker_compose/09_extra_mile
+          - the_dev_environment_and_docker_compose/05_postgres_pinned_version
+          - the_dev_environment_and_docker_compose/07_adding_your_phoenix_app
+          - the_dev_environment_and_docker_compose/06_postgres_explicit_volume
+          - the_dev_environment_and_docker_compose/04_postgres_ports_published
+          - the_dev_environment_and_docker_compose/08_update_your_ci_pipeline
+          - the_dev_environment_and_docker_compose/02_postgres_simple
+          - build_and_dockerize_a_phoenix_liveview_application/06_multi_stage
+          - build_and_dockerize_a_phoenix_liveview_application/01_from
+          - build_and_dockerize_a_phoenix_liveview_application/03_compile_deps
+          - build_and_dockerize_a_phoenix_liveview_application/02_args
+          - build_and_dockerize_a_phoenix_liveview_application/04_release_config
+          - build_and_dockerize_a_phoenix_liveview_application/05_mix_release
+          - distributed_erlang/01_connect_multiple_releases
+          - revise_your_aws_stack_to_create_a_multinode_swarm/04_join_script_01
+          - revise_your_aws_stack_to_create_a_multinode_swarm/03_initialize_script
+          - revise_your_aws_stack_to_create_a_multinode_swarm/01_multiple_ec2_instances
+          - revise_your_aws_stack_to_create_a_multinode_swarm/02_multinode_swarm
+          - revise_your_aws_stack_to_create_a_multinode_swarm/04_join_script_02
+          - revise_your_aws_stack_to_create_a_multinode_swarm/05_initial_deployment_automation
+          - revise_your_aws_stack_to_create_a_multinode_swarm/04_join_script_03
+          - the_production_environment_and_packer/01_ec2_import_01
+          - the_production_environment_and_packer/09_extra_mile
+          - the_production_environment_and_packer/06_packer_intro
+          - the_production_environment_and_packer/08_final_version
+          - the_production_environment_and_packer/04_key_pair_import
+          - the_production_environment_and_packer/07_packer_refactor
+          - the_production_environment_and_packer/02_sg_import_02
+          - the_production_environment_and_packer/01_ec2_import_02
+          - the_production_environment_and_packer/01_ec2_import_04
+          - the_production_environment_and_packer/01_ec2_import_03
+          - the_production_environment_and_packer/03_vpc_and_subnet_config
+          - the_production_environment_and_packer/02_sg_import_01
+          - the_production_environment_and_packer/05_boostrap_ec2
+          - continuous_deployment_and_repository_secrets/06_github_secrets
+          - continuous_deployment_and_repository_secrets/05_convenience_script
+          - continuous_deployment_and_repository_secrets/02_web_secrets_02
+          - continuous_deployment_and_repository_secrets/09_extra_mile
+          - continuous_deployment_and_repository_secrets/07_deploy_action
+          - continuous_deployment_and_repository_secrets/08_contributing_workflow
+          - continuous_deployment_and_repository_secrets/02_web_secrets_01
+          - continuous_deployment_and_repository_secrets/01_postgres_secret
+          - continuous_deployment_and_repository_secrets/03_sops
+          - continuous_deployment_and_repository_secrets/04_secrets_decrypt_script
+          - instrument_your_application_with_logs_and_metrics/04_extra_mile
+          - instrument_your_application_with_logs_and_metrics/01_logs
+          - instrument_your_application_with_logs_and_metrics/02_metrics_and_promex
+          - instrument_your_application_with_logs_and_metrics/03_metrics_and_grafana_dashboards
+          - set_up_integration_pipelines_with_github_actions/05_successful_mix_format
+          - set_up_integration_pipelines_with_github_actions/02_cache_deps_build
+          - set_up_integration_pipelines_with_github_actions/06_successful_dialyzer
+          - set_up_integration_pipelines_with_github_actions/10_multi_arch
+          - set_up_integration_pipelines_with_github_actions/04_successful_mix_test
+          - set_up_integration_pipelines_with_github_actions/03_conditional_steps
+          - set_up_integration_pipelines_with_github_actions/01_failing_mix_compile
+          - set_up_integration_pipelines_with_github_actions/07_unused_dependencies
+          - set_up_integration_pipelines_with_github_actions/06_failing_dialyzer
+          - set_up_integration_pipelines_with_github_actions/12_extra_mile
+          - set_up_integration_pipelines_with_github_actions/09_cache_docker_build
+          - set_up_integration_pipelines_with_github_actions/08_build_docker
+          - set_up_integration_pipelines_with_github_actions/05_failing_mix_format
+          - set_up_integration_pipelines_with_github_actions/01_successful_mix_compile
+          - set_up_integration_pipelines_with_github_actions/11_triggers
+          - set_up_integration_pipelines_with_github_actions/04_failing_mix_test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Elixir
+        uses: erlef/setup-beam@v1
+        with:
+          elixir-version: '1.16.0-otp-26' # Adjust to your required Elixir version
+          otp-version: '26.2.1' # Adjust to your required OTP version
+
+      - name: Cache dependencies and build
+        uses: actions/cache@v4
+        with:
+          path: |-
+            ${{ matrix.path }}/deps
+            ${{ matrix.path }}/_build
+          key: ${{ runner.os }}-mix-deps-${{ matrix.path }}-${{ hashFiles(format('{0}/mix.lock', matrix.path)) }}
+
+      - name: Fetch dependencies
+        run: mix deps.get
+        working-directory: ${{ matrix.path }}
+
+      - name: Compile project
+        run: mix compile
+        working-directory: ${{ matrix.path }}

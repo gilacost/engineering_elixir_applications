@@ -1,0 +1,51 @@
+---
+name: "Chapter 4 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "set_up_integration_pipelines_with_github_actions/**"
+  workflow_dispatch:
+  repository_dispatch:
+    types:
+      - ci-ch-4
+
+env:
+  CHP_CODE_PATH: set_up_integration_pipelines_with_github_actions
+
+jobs:
+  validate-gha-actions:
+    name: "Ch CI"
+    # TODO, run build_commands
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Npm install
+        run: npm install
+
+      - name: TEST CH 4 COMMANDS
+        working-directory: ${{ env.CHP_CODE_PATH }}
+        run: |-
+          npx action-validator 01_failing_mix_compile/.github/workflows/ci_cd.yaml
+          npx action-validator 01_successful_mix_compile/.github/workflows/ci_cd.yaml
+          npx action-validator 02_cache_deps_build/.github/workflows/ci_cd.yaml
+          npx action-validator 03_conditional_steps/.github/workflows/ci_cd.yaml
+          npx action-validator 04_failing_mix_test/.github/workflows/ci_cd.yaml
+          npx action-validator 04_successful_mix_test/.github/workflows/ci_cd.yaml
+          npx action-validator 05_failing_mix_format/.github/workflows/ci_cd.yaml
+          npx action-validator 05_successful_mix_format/.github/workflows/ci_cd.yaml
+          npx action-validator 06_failing_dialyzer/.github/workflows/ci_cd.yaml
+          npx action-validator 06_successful_dialyzer/.github/workflows/ci_cd.yaml
+          npx action-validator 07_unused_dependencies/.github/workflows/ci_cd.yaml
+          npx action-validator 08_build_docker/.github/workflows/ci_cd.yaml
+          npx action-validator 09_cache_docker_build/.github/workflows/ci_cd.yaml
+          npx action-validator 10_multi_arch/.github/workflows/ci_cd.yaml
+          npx action-validator 11_triggers/.github/workflows/ci_cd.yaml
+          # TODO ./build_commands.sh

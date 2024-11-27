@@ -1,0 +1,68 @@
+---
+# yamllint disable rule:line-length
+name: "Chapter 2 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "use_terraform_to_create_github_issues_and_milestones/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+env:
+  CHP_CODE_PATH: use_terraform_to_create_github_issues_and_milestones
+
+jobs:
+  terraform:
+    name: "Ch CI"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: INITIAL SET UP
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/01_initial_setup/modules/integrations/github/project_management
+
+      - name: LOCAL VALUES
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/02_local_values/modules/integrations/github/project_management
+
+      - name: INITIAL MILESTONE SET UP
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/03_initial_milestones_setup/modules/integrations/github/project_management
+
+      - name: MILESTONES WITH VARIABLES
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/04_milestones_with_variables/modules/integrations/github/project_management
+
+      - name: LABELS
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/05_labels/modules/integrations/github/project_management
+
+
+      - name: RESOURCE DEPENDENCIES
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/06_resource_dependencies/modules/integrations/github/project_management
+
+      - name: ISSUES
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/07_issues/modules/integrations/github/project_management
+
+      - name: EXTRA MILE
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/08_extra_mile/modules/integrations/github/project_management

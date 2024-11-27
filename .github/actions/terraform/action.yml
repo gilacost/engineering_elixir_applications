@@ -1,0 +1,66 @@
+name: "Terraform CI"
+description: "Check format, validation and plans terraform code"
+inputs:
+  chdir:
+    description: "In which folder should the action be run"
+    required: true
+  replacement_command:
+    description: "A command to replace any placeholders in any files"
+    required: false
+    default: 'echo "No replacements to be made"'
+  continue_on_error:
+    description: "Should the action continue if there is an error"
+    required: false
+    default: 'false'
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - uses: hashicorp/setup-terraform@v3.1.2
+      with:
+        terraform_version: "1.5.0"
+        terraform_wrapper: false
+
+    - name: Run any replacement commands
+      shell: bash
+      run: ${{ inputs.replacement_command }}
+
+    - name: replace account id
+      shell: bash
+      run: |-
+        file="${{ inputs.chdir }}/../../modules/cloud/aws/compute/swarm/main.tf"
+        ls -la ${{ inputs.chdir }}/../../
+        if [ -f "$file" ]; then
+          sed -i -e 's/YOUR_AWS_ACCOUNT_ID/111101111111/g' "$file"
+        fi
+
+    - name: Terraform fmt
+      id: fmt
+      shell: bash
+      run: terraform -chdir=${{ inputs.chdir }} fmt -check
+
+    - name: Terraform Init
+      id: init
+      shell: bash
+      run: terraform -chdir=${{ inputs.chdir }} init
+
+    - name: Terraform Validate
+      id: validate
+      shell: bash
+      run: terraform -chdir=${{ inputs.chdir }} validate -no-color
+
+    - name: Terraform Plan
+      id: plan
+      continue-on-error: ${{ inputs.continue_on_error == 'true' }}
+      shell: bash
+      run: |-
+        terraform -chdir=${{ inputs.chdir }} plan -json > plan_output.json
+        # Check for warnings
+        if jq -e '. | select(.diagnostic.severity == "warning")' plan_output.json > /dev/null; then
+            echo "Warnings found in terraform plan. Treating as errors."
+            exit 1
+        else
+            echo "No warnings found. Proceeding."
+        fi

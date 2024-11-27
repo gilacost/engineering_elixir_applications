@@ -1,0 +1,81 @@
+---
+# yamllint disable rule:line-length
+name: "Chapter 11 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "instrument_your_application_with_logs_and_metrics/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+env:
+  CHP_CODE_PATH: instrument_your_application_with_logs_and_metrics
+  AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+  AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+  AWS_REGION: "${{ secrets.AWS_REGION }}"
+
+jobs:
+  action_validator:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-action-validator
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Npm install
+        run: npm install
+
+      - name: TEST CH 11 ACTIONS/WORKFLOWS
+        working-directory: ${{ env.CHP_CODE_PATH }}
+        run: |-
+          npx action-validator 01_logs/.github/workflows/ci_cd.yaml
+          npx action-validator 01_logs/.github/actions/deploy/action.yaml
+
+          npx action-validator 02_metrics_and_promex/.github/workflows/ci_cd.yaml
+          npx action-validator 02_metrics_and_promex/.github/actions/deploy/action.yaml
+
+          npx action-validator 03_metrics_and_grafana_dashboards/.github/workflows/ci_cd.yaml
+          npx action-validator 03_metrics_and_grafana_dashboards/.github/actions/deploy/action.yaml
+
+          npx action-validator 04_extra_mile/.github/workflows/ci_cd.yaml
+          npx action-validator 04_extra_mile/.github/actions/deploy/action.yaml
+
+  terraform:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}-terraform
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: 01_logs
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/01_logs/environments/production
+
+      - name: 02_metrics_and_promex
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/02_metrics_and_promex/environments/production
+
+      - name: 03_metrics_and_grafana_dashboards
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/03_metrics_and_grafana_dashboards/environments/production
+
+      - name: 04_extra_mile
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/04_extra_mile/environments/production

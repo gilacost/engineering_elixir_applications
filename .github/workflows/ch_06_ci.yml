@@ -1,0 +1,103 @@
+---
+# yamllint disable rule:line-length
+name: "Chapter 6 Integration"
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches: [main]
+    paths:
+      - "code/the_production_environment_and_packer/**"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * 0"
+
+env:
+  CHP_CODE_PATH: code/the_production_environment_and_packer
+  AWS_ACCESS_KEY_ID: "${{ secrets.AWS_ACCESS_KEY_ID }}"
+  AWS_SECRET_ACCESS_KEY: "${{ secrets.AWS_SECRET_ACCESS_KEY }}"
+  AWS_REGION: "${{ secrets.AWS_REGION }}"
+
+jobs:
+  terraform:
+    name: "Ch CI"
+    concurrency:
+      group: ${{ github.workflow }}  # Ensures only one instance of this workflow runs at a time
+      cancel-in-progress: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      # TODO it fails with missing arguments, ami, instance_type ...
+      # - name: 01_ec2_import_01
+      #   uses: ./.github/actions/terraform
+      #   with:
+      #     chdir: ${{ env.CHP_CODE_PATH }}/01_ec2_import_01/environments/production
+
+      # TODO it fails with invalid id YOUR_EC2_INSTANCE_ID
+      # - name: 01_ec2_import_02
+      #   uses: ./.github/actions/terraform
+      #   with:
+      #     chdir: ${{ env.CHP_CODE_PATH }}/01_ec2_import_02/environments/production
+
+      # TODO it fails with invalid id YOUR_EC2_INSTANCE_ID
+      # - name: 01_ec2_import_03
+      #   uses: ./.github/actions/terraform
+      #   with:
+      #     chdir: ${{ env.CHP_CODE_PATH }}/01_ec2_import_03/environments/production
+
+      - name: 01_ec2_import_04
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/01_ec2_import_04/environments/production
+
+      # TODO it fails with invalid id YOUR_SECURITY_GROUP_ID
+      # - name: 02_sg_import_01
+      #   uses: ./.github/actions/terraform
+      #   with:
+      #     chdir: ${{ env.CHP_CODE_PATH }}/02_sg_import_01/environments/production
+
+      - name: 02_sg_import_02
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/02_sg_import_02/environments/production
+
+      - name: 03_vpc_and_subnet_config
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/03_vpc_and_subnet_config/environments/production
+
+      # TODO it fails with Cannot import non-existent remote object
+      # - name: 04_key_pair_import
+      #   uses: ./.github/actions/terraform
+      #   with:
+      #     chdir: ${{ env.CHP_CODE_PATH }}/04_key_pair_import/environments/production
+
+      - name: 05_boostrap_ec2
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/05_boostrap_ec2/environments/production
+
+      - name: 06_packer_intro
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/06_packer_intro/environments/production
+
+      - name: 07_packer_refactor
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/07_packer_refactor/environments/production
+
+      - name: 08_final_version
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/08_final_version/environments/production
+
+      - name: 09_extra_mile
+        uses: ./.github/actions/terraform
+        with:
+          chdir: ${{ env.CHP_CODE_PATH }}/09_extra_mile/environments/production
