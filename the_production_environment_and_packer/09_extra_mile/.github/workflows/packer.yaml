@@ -1,0 +1,35 @@
+name: CI packer
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - "packer/**"
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    name: Compile with mix test, format, dialyzer & unused deps check
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse versions from .tool-versions
+        id: parse-asdf
+        run: ./scripts/versions.sh
+
+      - name: Setup `packer`
+        uses: hashicorp/setup-packer@main
+        id: setup
+        with:
+          version: ${{ env.PACKER_VERSION }}
+
+      - name: Packer template validation
+        working-directory: packer
+        run: packer validate -check .
+
+      - name: Packer template format check
+        working-directory: packer
+        run: packer fmt -check .

@@ -1,0 +1,39 @@
+// in instrumentation/alloy/local.alloy
+
+discovery.docker "kanban" {
+  host = "unix:///var/run/docker.sock"
+  refresh_interval = "15s"
+
+  filter {
+    name = "status"
+    values = ["running"]
+  }
+
+  filter {
+    name = "name"
+    values = ["web"]
+  }
+}
+
+discovery.relabel "use_container_name_not_docker_ip" {
+  targets = discovery.docker.kanban.targets
+
+  rule {
+    source_labels = ["__meta_docker_container_name"]
+    regex = "/(.*)"
+    target_label = "instance"
+  }
+}
+
+prometheus.remote_write "kanban" {
+  endpoint {
+    url = "http://prometheus:9090/api/v1/write"
+  }
+}
+
+prometheus.scrape "kanban" {
+  targets    = discovery.relabel.use_container_name_not_docker_ip.output
+  forward_to = [prometheus.remote_write.kanban.receiver]
+  scrape_interval = "5s"
+  scrape_timeout = "5s"
+}

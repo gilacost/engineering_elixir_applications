@@ -1,0 +1,20 @@
+# in instrumentation/grafana/datasources/datasources.yaml
+
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    jsonData:
+      maxLines: 1000
+      manageAlerts: false
+
+  - name: prometheus
+    type: prometheus
+    orgId: 1
+    uid: P1809F7CD0C75ACF3
+    url: http://prometheus:9090 
+    basicAuth: false
+    version: 1

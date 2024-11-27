@@ -1,0 +1,166 @@
+# START: CD_step
+# in ci_cd.yaml
+
+# END: CD_step
+name: CI/CD Elixir
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    name: Compile with mix test, format, dialyzer & unused deps check
+    env:
+      MIX_ENV: test
+    services:
+      postgres:
+        image: postgres:15.2
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Elixir
+        uses: erlef/setup-beam@v1.17.3
+        with:
+          version-file: .tool-versions
+          version-type: strict
+
+      - name: Cache deps directory
+        uses: actions/cache@v4
+        id: cache-deps
+        with:
+          path: |
+            deps
+            _build
+          key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-mix-
+
+      - name: Cache plt files
+        uses: actions/cache@v4
+        env: 
+          EX_OTP_VERSIONS: ${{ steps.setup-beam.outputs.elixir-version }}
+          KEY_BASE: plt-${{ runner.os }}-${{ env.EX_OTP_VERSIONS }}
+        with:
+          path: |
+            priv/plts
+          key: |
+            ${{ env.KEY_BASE }}-${{ hashFiles('**/mix.lock') }}
+          restore-keys: |
+            ${{ env.KEY_BASE }}-
+
+      - name: Get dependencies
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: mix deps.get
+
+      - run: mix compile --warnings-as-errors
+
+      - name: Run tests
+        run: mix test --max-failures 1 --trace --warnings-as-errors
+
+      - name: Check code is formatted
+        run: mix format --check-formatted
+
+      - name: Dialyzer static analysis
+        run: MIX_ENV=dev mix dialyzer --format github
+
+      - name: Checks unused dependencies
+        run: mix deps.unlock --check-unused
+
+# START: CD_step
+  build-push:
+    # END: CD_step
+    runs-on: ubuntu-latest
+    needs: ci
+    name: build/push
+    # START: CD_step
+    outputs:
+      unique_docker_tag: ${{ steps.get-unique-docker-tag.outputs.sha_tag }}
+    steps:
+    # END: CD_step
+      - uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GH_PAT }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            ghcr.io/YOUR_GITHUB_USERNAME/kanban
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=ref,event=pr
+            type=sha,format=short
+
+      - name: Parse versions from .tool-versions
+        id: parse-asdf
+        run: ./scripts/versions.sh
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          cache-from: type=registry,ref=ghcr.io/YOUR_USERNAME/kanban:cache
+          cache-to: type=registry,ref=ghcr.io/YOUR_USERNAME/kanban:cache,mode=max
+          tags: ${{ steps.meta.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          build-args: |
+            ELIXIR_VERSION=${{ env.ELIXIR_VERSION }}
+            OTP_VERSION=${{ env.ERLANG_VERSION }}
+
+# START: CD_step
+      - name: Gets unique image tag
+        id: get-unique-docker-tag
+        if: github.ref == 'refs/heads/main'
+        run: |-
+          IMAGE_TAG=$(echo "${{ steps.meta.outputs.tags }}" \
+                      | grep 'sha' \
+                      | tr '\n' ' ' \
+                      | awk '{print $1}')
+          echo "sha_tag=$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: build-push
+    name: Deploy application
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/deploy
+        with:
+          github_user: ${{ github.repository_owner }}
+          gh_pat: ${{ secrets.GH_PAT }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          age_key: ${{ secrets.AGE_KEY }}
+          ssh_private_key: ${{ secrets.PRIVATE_KEY }}
+          image_tag: ${{ needs.build-push.outputs.unique_docker_tag }}
+
+# END: CD_step

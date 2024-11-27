@@ -1,0 +1,48 @@
+# START: depends-on
+# in compose.yaml
+
+# END: depends-on
+version: "3.9"
+
+services:
+  db:
+    image: postgres:15.2
+    healthcheck:
+      test: ["CMD", "pg_isready", "--username=postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      restart_policy:
+        condition: on-failure
+    environment:
+      POSTGRES_PASSWORD: postgres
+      PGDATA: /var/lib/postgresql/data
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - ${POSTGRES_PORT:-5432}
+
+# START: depends-on
+  web:
+# END: depends-on
+    image: ${WEB_IMAGE:-ghcr.io/beamops/kanban:latest}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s
+    environment:
+      DATABASE_URL: ecto://postgres:postgres@db/postgres
+      SECRET_KEY_BASE: 9wORvLm5m1UOawC8RCj4ASIwXgcSzIYBiUqU8yzyFl11xfsFqy/X6D
+      PHX_HOST: "localhost"
+    ports:
+      - 4000:4000
+# START: depends-on
+    depends_on:
+      - db
+# END: depends-on
+
+volumes:
+  db_data:

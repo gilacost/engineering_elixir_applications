@@ -1,0 +1,14 @@
+# in tasks/purge.yaml
+
+version: "3.9"
+
+services:
+  system-prune:
+    image: docker
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    command: docker system prune --all --force
+    deploy:
+      mode: global
+      restart_policy:
+        condition: none
